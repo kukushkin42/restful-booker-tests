@@ -1,0 +1,547 @@
+{
+  "info": {
+    "_postman_id": "fd813173-b21e-4482-823c-a4e4812084ac",
+    "name": "Restful Booker API Tests",
+    "description": "Коллекция тест-кейсов для API restful-booker.herokuapp.com",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "26311348"
+  },
+  "item": [
+    {
+      "name": "1. Health Check",
+      "item": [
+        {
+          "name": "GET /ping - Проверка доступности",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 201 (Created)\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Время ответа менее 500ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://restful-booker.herokuapp.com/ping",
+              "protocol": "https",
+              "host": [
+                "restful-booker",
+                "herokuapp",
+                "com"
+              ],
+              "path": [
+                "ping"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Authentication",
+      "item": [
+        {
+          "name": "POST /auth - Успешная аутентификация",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Тело ответа содержит токен\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('token');",
+                  "    pm.expect(jsonData.token).to.be.a('string');",
+                  "});",
+                  "",
+                  "pm.test(\"Токен не пустой\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token).to.not.be.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "https://restful-booker.herokuapp.com/auth",
+              "protocol": "https",
+              "host": [
+                "restful-booker",
+                "herokuapp",
+                "com"
+              ],
+              "path": [
+                "auth"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /auth - Негативный: Неверный пароль",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Ответ содержит сообщение об ошибке\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('reason');",
+                  "    pm.expect(jsonData.reason).to.eql('Bad credentials');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"wrongpassword\"\n}"
+            },
+            "url": {
+              "raw": "https://restful-booker.herokuapp.com/auth",
+              "protocol": "https",
+              "host": [
+                "restful-booker",
+                "herokuapp",
+                "com"
+              ],
+              "path": [
+                "auth"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Bookings",
+      "item": [
+        {
+          "name": "POST /booking - Создание новой брони (позитивный)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Тело ответа содержит bookingid\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('bookingid');",
+                  "    pm.expect(jsonData.bookingid).to.be.a('number');",
+                  "});",
+                  "",
+                  "// Сохраняем ID для последующих тестов",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('bookingId', jsonData.bookingid);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"Jim\",\n    \"lastname\": \"Brown\",\n    \"totalprice\": 111,\n    \"depositpaid\": true,\n    \"bookingdates\": {\n        \"checkin\": \"2026-01-01\",\n        \"checkout\": \"2026-01-05\"\n    },\n    \"additionalneeds\": \"Breakfast\"\n}"
+            },
+            "url": {
+              "raw": "https://restful-booker.herokuapp.com/booking",
+              "protocol": "https",
+              "host": [
+                "restful-booker",
+                "herokuapp",
+                "com"
+              ],
+              "path": [
+                "booking"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /booking - Поиск по параметрам (firstname, lastname)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Тело ответа - массив с ID броней\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "    pm.expect(jsonData.length).to.be.at.least(1);",
+                  "});",
+                  "",
+                  "pm.test(\"Найденная бронь имеет ожидаемые имя и фамилию (проверка через отдельный GET)\", function () {",
+                  "    // Доп. проверка: берем первый ID и делаем GET /booking/:id",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.length > 0) {",
+                  "        var firstBookingId = jsonData[0].bookingid;",
+                  "        pm.sendRequest(`https://restful-booker.herokuapp.com/booking/${firstBookingId}`, function (err, res) {",
+                  "            var bookingData = res.json();",
+                  "            pm.expect(bookingData.firstname).to.eql('Jim');",
+                  "            pm.expect(bookingData.lastname).to.eql('Brown');",
+                  "        });",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://restful-booker.herokuapp.com/booking?firstname=Jim&lastname=Brown",
+              "protocol": "https",
+              "host": [
+                "restful-booker",
+                "herokuapp",
+                "com"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": [
+                {
+                  "key": "firstname",
+                  "value": "Jim"
+                },
+                {
+                  "key": "lastname",
+                  "value": "Brown"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /booking/:id - Получение существующей брони",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Тело ответа содержит данные брони\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.all.keys('firstname', 'lastname', 'totalprice', 'depositpaid', 'bookingdates', 'additionalneeds');",
+                  "});",
+                  "",
+                  "pm.test(\"Имя и фамилия не пустые\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.firstname).to.not.be.empty;",
+                  "    pm.expect(jsonData.lastname).to.not.be.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://restful-booker.herokuapp.com/booking/{{bookingId}}",
+              "protocol": "https",
+              "host": [
+                "restful-booker",
+                "herokuapp",
+                "com"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /booking/:id - Негативный: Несуществующий ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"Тело ответа содержит сообщение об ошибке\", function () {",
+                  "    var text = pm.response.text();",
+                  "    pm.expect(text).to.include('Not Found');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://restful-booker.herokuapp.com/booking/9999999",
+              "protocol": "https",
+              "host": [
+                "restful-booker",
+                "herokuapp",
+                "com"
+              ],
+              "path": [
+                "booking",
+                "9999999"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /booking/:id - Полное обновление (позитивный)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Данные обновлены корректно\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.firstname).to.eql('Jane');",
+                  "    pm.expect(jsonData.lastname).to.eql('Smith');",
+                  "    pm.expect(jsonData.totalprice).to.eql(222);",
+                  "    pm.expect(jsonData.depositpaid).to.eql(false);",
+                  "    pm.expect(jsonData.bookingdates.checkin).to.eql('2026-02-01');",
+                  "    pm.expect(jsonData.bookingdates.checkout).to.eql('2026-02-10');",
+                  "    pm.expect(jsonData.additionalneeds).to.eql('Dinner');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"Jane\",\n    \"lastname\": \"Smith\",\n    \"totalprice\": 222,\n    \"depositpaid\": false,\n    \"bookingdates\": {\n        \"checkin\": \"2026-02-01\",\n        \"checkout\": \"2026-02-10\"\n    },\n    \"additionalneeds\": \"Dinner\"\n}"
+            },
+            "url": {
+              "raw": "https://restful-booker.herokuapp.com/booking/{{bookingId}}",
+              "protocol": "https",
+              "host": [
+                "restful-booker",
+                "herokuapp",
+                "com"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /booking/:id - Частичное обновление (позитивный)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Только указанные поля обновлены\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.firstname).to.eql('Jack');",
+                  "    pm.expect(jsonData.totalprice).to.eql(333);",
+                  "    // Проверяем, что другие поля остались без изменений",
+                  "    pm.expect(jsonData.lastname).to.eql('Smith'); // из PUT",
+                  "    pm.expect(jsonData.depositpaid).to.eql(false); // из PUT",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstname\": \"Jack\",\n    \"totalprice\": 333\n}"
+            },
+            "url": {
+              "raw": "https://restful-booker.herokuapp.com/booking/{{bookingId}}",
+              "protocol": "https",
+              "host": [
+                "restful-booker",
+                "herokuapp",
+                "com"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /booking/:id - Удаление брони",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "// Доп. проверка: что бронь действительно удалена",
+                  "pm.test(\"Проверка, что бронь удалена (GET возвращает 404)\", function () {",
+                  "    var bookingId = pm.collectionVariables.get('bookingId');",
+                  "    pm.sendRequest(`https://restful-booker.herokuapp.com/booking/${bookingId}`, function (err, res) {",
+                  "        pm.expect(res.code).to.eql(404);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "token={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "https://restful-booker.herokuapp.com/booking/{{bookingId}}",
+              "protocol": "https",
+              "host": [
+                "restful-booker",
+                "herokuapp",
+                "com"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "bookingId",
+      "value": ""
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
+}
